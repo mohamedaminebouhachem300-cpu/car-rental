@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isSeeder() {
+      return isAuthenticated() && request.auth.token.email == "mohamedaminebouhachem300@gmail.com";
+    }
+
+    // ===============================================================
+    // Data Validators
+    // ===============================================================
+    function isValidCar(data) {
+      return data.keys().hasAll(['id', 'model', 'price_per_day', 'image']) &&
+             data.keys().hasOnly(['id', 'model', 'brand', 'description', 'detailed_description', 'price_per_day', 'image', 'available', 'average_rating', 'total_reviews', 'fuel_type', 'engine', 'transmission', 'created_at']) &&
+             data.id is string && data.id.size() > 0 &&
+             data.model is string && data.model.size() > 0 && data.model.size() < 100 &&
+             data.price_per_day is number && data.price_per_day >= 0 &&
+             data.image is string && data.image.matches('^https?://.*') && data.image.size() < 2000;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /cars/{carId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isSeeder();
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    match /favorites/{favoriteId} {
+      allow get: if isAuthenticated() && (resource == null || resource.data.user_id == request.auth.uid);
+      allow list: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                      request.auth.uid == request.resource.data.user_id &&
+                      request.resource.data.id is string &&
+                      request.resource.data.user_id is string &&
+                      request.resource.data.car_id is string;
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.user_id;
+    }
+
+    match /cart/{cartId} {
+      allow get: if isAuthenticated() && (resource == null || resource.data.user_id == request.auth.uid);
+      allow list: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                      request.auth.uid == request.resource.data.user_id &&
+                      request.resource.data.id is string && request.resource.data.id.size() < 100 &&
+                      request.resource.data.user_id is string && request.resource.data.user_id.size() < 100 &&
+                      request.resource.data.car_id is string && request.resource.data.car_id.size() < 100;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.user_id && 
+                      request.resource.data.user_id == resource.data.user_id &&
+                      request.resource.data.id is string && request.resource.data.id.size() < 100 &&
+                      request.resource.data.car_id is string && request.resource.data.car_id.size() < 100;
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.user_id;
+    }
+
+    match /bookings/{bookingId} {
+      allow get: if isAuthenticated() && (resource == null || resource.data.user_id == request.auth.uid);
+      allow list: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                      request.auth.uid == request.resource.data.user_id &&
+                      request.resource.data.id is string &&
+                      request.resource.data.user_id is string &&
+                      request.resource.data.car_id is string &&
+                      request.resource.data.total_price is number;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.user_id;
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.user_id;
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.user_id;
+      allow update, delete: if isAuthenticated() && request.auth.uid == resource.data.user_id;
+    }
+  }
+}

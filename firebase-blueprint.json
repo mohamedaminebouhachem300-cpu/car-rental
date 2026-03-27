@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "full_name": { "type": "string" },
+        "phone_number": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email"]
+    },
+    "Car": {
+      "title": "Car",
+      "description": "Vehicle in the fleet",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "model": { "type": "string" },
+        "brand": { "type": "string" },
+        "description": { "type": "string" },
+        "price_per_day": { "type": "number" },
+        "image": { "type": "string" },
+        "available": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "model", "price_per_day", "image"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Car rental reservation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "car_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "start_date": { "type": "string", "format": "date-time" },
+        "end_date": { "type": "string", "format": "date-time" },
+        "total_price": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "completed", "cancelled"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "car_id", "user_id", "start_date", "end_date", "total_price"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "User rating and review for a car",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "car_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "user_name": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "car_id", "user_id", "rating", "comment", "created_at"]
+    },
+    "Favorite": {
+      "title": "Favorite",
+      "description": "User's favorite car",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "car_id": { "type": "string" }
+      },
+      "required": ["id", "user_id", "car_id"]
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": "User",
+      "description": "Collection of user profiles"
+    },
+    "cars": {
+      "schema": "Car",
+      "description": "Collection of available vehicles"
+    },
+    "bookings": {
+      "schema": "Booking",
+      "description": "Collection of car rental bookings"
+    },
+    "reviews": {
+      "schema": "Review",
+      "description": "Collection of car reviews"
+    },
+    "favorites": {
+      "schema": "Favorite",
+      "description": "Collection of user's favorite cars"
+    }
+  }
+}
