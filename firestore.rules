@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "mohamedaminebouhachem300@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /cars/{carId} {
+      allow read: if true;
+      allow write: if isAdmin(); // Admins can modify cars
+    }
+
+    match /cart/{cartItemId} {
+      allow read, update, delete: if isOwner(resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id);
+    }
+
+    match /favorites/{favoriteId} {
+      allow read: if isAuthenticated();
+      allow update, delete: if isOwner(resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id);
+    }
+
+    match /bookings/{bookingId} {
+      // Allow reading all bookings so the client can check for date conflicts.
+      // In a strict production environment, you would use a Cloud Function for this to hide user IDs.
+      allow read: if isAuthenticated();
+      
+      // SERVER-SIDE PRICE VERIFICATION
+      // Ensure the total_price exactly matches the car's price_per_day * days
+      allow create: if isOwner(request.resource.data.user_id) &&
+                    request.resource.data.total_price == (
+                      get(/databases/$(database)/documents/cars/$(request.resource.data.car_id)).data.price_per_day * request.resource.data.days
+                    );
+                    
+      // Prevent users from editing other people's bookings.
+      // Prevent tampering with price, car, or dates after creation.
+      allow update: if isOwner(resource.data.user_id) &&
+                    request.resource.data.user_id == resource.data.user_id &&
+                    request.resource.data.total_price == resource.data.total_price &&
+                    request.resource.data.car_id == resource.data.car_id &&
+                    request.resource.data.days == resource.data.days;
+                    
+      allow delete: if isOwner(resource.data.user_id);
+    }
+  }
+}
