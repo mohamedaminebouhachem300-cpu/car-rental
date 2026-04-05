@@ -72,8 +72,8 @@ export default function CarCard({ car, onClick, onRent }: CarCardProps) {
         </div>
         <div className="absolute top-4 right-4 flex items-center gap-2">
           <FavoriteButton carId={car.id} />
-          <div className="glass px-3 py-1 rounded-full text-xs font-bold text-emerald">
-            AVAILABLE
+          <div className={`glass px-3 py-1 rounded-full text-xs font-bold ${car.available ? 'text-emerald' : 'text-rose-500'}`}>
+            {car.available ? 'AVAILABLE' : 'UNAVAILABLE'}
           </div>
         </div>
         
@@ -130,11 +130,12 @@ export default function CarCard({ car, onClick, onRent }: CarCardProps) {
         <button 
           onClick={(e) => {
             e.stopPropagation();
-            onRent(car);
+            if (car.available) onRent(car);
           }}
-          className="btn-primary w-full py-3 text-xs font-bold tracking-[0.2em] uppercase mt-auto"
+          disabled={!car.available}
+          className={`w-full py-3 text-xs font-bold tracking-[0.2em] uppercase mt-auto transition-colors ${car.available ? 'btn-primary' : 'bg-white/10 text-white/40 cursor-not-allowed rounded-lg'}`}
         >
-          RENT NOW
+          {car.available ? 'RENT NOW' : 'UNAVAILABLE'}
         </button>
       </div>
     </motion.div>

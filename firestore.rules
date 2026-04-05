@@ -20,20 +20,25 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
     }
 
+    match /security_logs/{logId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
     match /cars/{carId} {
       allow read: if true;
       allow write: if isAdmin(); // Admins can modify cars
     }
 
     match /cart/{cartItemId} {
-      allow read, update, delete: if isOwner(resource.data.user_id);
-      allow create: if isOwner(request.resource.data.user_id);
+      allow read, update, delete: if isOwner(resource.data.user_id) || isAdmin();
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
     }
 
     match /favorites/{favoriteId} {
       allow read: if isAuthenticated();
-      allow update, delete: if isOwner(resource.data.user_id);
-      allow create: if isOwner(request.resource.data.user_id);
+      allow update, delete: if isOwner(resource.data.user_id) || isAdmin();
+      allow create: if isOwner(request.resource.data.user_id) || isAdmin();
     }
 
     match /bookings/{bookingId} {
@@ -43,20 +48,20 @@ service cloud.firestore {
       
       // SERVER-SIDE PRICE VERIFICATION
       // Ensure the total_price exactly matches the car's price_per_day * days
-      allow create: if isOwner(request.resource.data.user_id) &&
+      allow create: if (isOwner(request.resource.data.user_id) &&
                     request.resource.data.total_price == (
                       get(/databases/$(database)/documents/cars/$(request.resource.data.car_id)).data.price_per_day * request.resource.data.days
-                    );
+                    )) || isAdmin();
                     
       // Prevent users from editing other people's bookings.
       // Prevent tampering with price, car, or dates after creation.
-      allow update: if isOwner(resource.data.user_id) &&
+      allow update: if (isOwner(resource.data.user_id) &&
                     request.resource.data.user_id == resource.data.user_id &&
                     request.resource.data.total_price == resource.data.total_price &&
                     request.resource.data.car_id == resource.data.car_id &&
-                    request.resource.data.days == resource.data.days;
+                    request.resource.data.days == resource.data.days) || isAdmin();
                     
-      allow delete: if isOwner(resource.data.user_id);
+      allow delete: if isOwner(resource.data.user_id) || isAdmin();
     }
   }
 }

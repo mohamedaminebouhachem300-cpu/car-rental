@@ -1,15 +1,28 @@
 import { Link } from 'react-router-dom';
-import { Car, User as UserIcon, LogOut, Heart } from 'lucide-react';
+import { Car, User as UserIcon, LogOut, Heart, Shield } from 'lucide-react';
 import { auth } from '../firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { useState, useEffect } from 'react';
+import { dbService } from '../services/db';
+import { User as AppUser } from '../types';
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      if (user) {
+        if (user.email === 'mohamedaminebouhachem300@gmail.com') {
+          setIsAdmin(true);
+        } else {
+          const userDoc = await dbService.getDocument<AppUser>('users', user.uid);
+          setIsAdmin(userDoc?.role === 'admin');
+        }
+      } else {
+        setIsAdmin(false);
+      }
     });
 
     return () => unsubscribe();
@@ -30,6 +43,12 @@ export default function Navbar() {
               <Heart size={18} />
               <span>FAVORITES</span>
             </Link>
+            {isAdmin && (
+              <Link to="/admin" className="flex items-center gap-2 text-sm font-medium hover:text-purple-400 transition-colors">
+                <Shield size={18} />
+                <span>ADMIN</span>
+              </Link>
+            )}
             <Link to="/profile" className="flex items-center gap-2 text-sm font-medium hover:text-electric-blue transition-colors">
               <UserIcon size={18} />
               <span>PROFILE</span>

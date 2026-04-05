@@ -40,6 +40,8 @@ const getEngine = (car: Car) => {
 };
 
 export default function CarDetailModal({ car, onClose, onAddToCart }: CarDetailModalProps) {
+  const [imageLoaded, setImageLoaded] = React.useState(false);
+
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -68,12 +70,18 @@ export default function CarDetailModal({ car, onClose, onAddToCart }: CarDetailM
           </div>
 
           <div className="flex flex-col md:flex-row">
-            <div className="md:w-1/2 h-64 md:h-auto relative overflow-hidden">
+            <div className="md:w-1/2 h-64 md:h-auto relative overflow-hidden bg-white/5">
+              {!imageLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-8 h-8 border-2 border-electric-blue border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
               <img 
                 src={car.image} 
                 alt={car.model} 
-                className="w-full h-full object-cover"
+                className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                 referrerPolicy="no-referrer"
+                onLoad={() => setImageLoaded(true)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden" />
               
@@ -133,16 +141,21 @@ export default function CarDetailModal({ car, onClose, onAddToCart }: CarDetailM
               </div>
 
               <button 
-                onClick={() => onAddToCart(car)}
-                className="btn-primary w-full py-4 text-sm font-bold tracking-[0.2em] uppercase flex items-center justify-center gap-3 group mb-8"
+                onClick={() => {
+                  if (car.available) onAddToCart(car);
+                }}
+                disabled={!car.available}
+                className={`w-full py-4 text-sm font-bold tracking-[0.2em] uppercase flex items-center justify-center gap-3 group mb-8 transition-colors ${car.available ? 'btn-primary' : 'bg-white/10 text-white/40 cursor-not-allowed rounded-lg'}`}
               >
-                <span>Add to Cart</span>
-                <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  <Zap size={18} fill="currentColor" />
-                </motion.div>
+                <span>{car.available ? 'Add to Cart' : 'Currently Unavailable'}</span>
+                {car.available && (
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                  >
+                    <Zap size={18} fill="currentColor" />
+                  </motion.div>
+                )}
               </button>
 
               <ReviewSection car={car} />

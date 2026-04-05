@@ -174,34 +174,56 @@ export default function Confirmation() {
             VIEW MY BOOKINGS
           </Link>
           {booking.status !== 'cancelled' && (
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              {showConfirmCancel ? (
-                <div className="flex flex-wrap items-center justify-center gap-4 w-full sm:w-auto">
-                  <button 
-                    onClick={handleCancel}
-                    className="px-8 py-4 rounded-full font-bold uppercase tracking-widest text-xs bg-rose-500 text-white hover:bg-rose-600 transition-all flex-1 sm:flex-none whitespace-nowrap"
-                  >
-                    CONFIRM CANCELLATION
-                  </button>
-                  <button 
-                    onClick={() => setShowConfirmCancel(false)}
-                    className="px-8 py-4 rounded-full font-bold uppercase tracking-widest text-xs bg-white/10 text-white hover:bg-white/20 transition-all flex-1 sm:flex-none whitespace-nowrap"
-                  >
-                    KEEP BOOKING
-                  </button>
-                </div>
-              ) : (
-                <button 
-                  onClick={() => setShowConfirmCancel(true)}
-                  className="px-8 py-4 rounded-full font-bold uppercase tracking-widest text-xs text-rose-500 border border-rose-500/20 hover:bg-rose-500/10 transition-all w-full sm:w-auto flex items-center justify-center gap-2 whitespace-nowrap"
-                >
-                  <XCircle size={16} /> CANCEL BOOKING
-                </button>
-              )}
-            </div>
+            <button 
+              onClick={() => setShowConfirmCancel(true)}
+              className="px-8 py-4 rounded-full font-bold uppercase tracking-widest text-xs text-rose-500 border border-rose-500/20 hover:bg-rose-500/10 transition-all w-full sm:w-auto flex items-center justify-center gap-2 whitespace-nowrap"
+            >
+              <XCircle size={16} /> CANCEL BOOKING
+            </button>
           )}
         </div>
       </motion.div>
+
+      {/* Cancellation Confirmation Modal */}
+      {showConfirmCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowConfirmCancel(false)}
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="relative bg-charcoal border border-white/10 rounded-2xl p-8 w-full max-w-md text-center shadow-2xl"
+          >
+            <div className="w-16 h-16 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <XCircle className="text-rose-500" size={32} />
+            </div>
+            <h3 className="text-2xl font-bold tracking-tighter mb-2">Cancel Reservation?</h3>
+            <p className="text-white/60 mb-8">
+              Are you sure you want to cancel your reservation for the {car.model}? This action cannot be undone.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button 
+                onClick={() => setShowConfirmCancel(false)}
+                className="flex-1 px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs bg-white/10 text-white hover:bg-white/20 transition-colors"
+              >
+                Keep Booking
+              </button>
+              <button 
+                onClick={handleCancel}
+                className="flex-1 px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-xs bg-rose-500 text-white hover:bg-rose-600 transition-colors"
+              >
+                Yes, Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { auth } from '../firebase';
-import { onAuthStateChanged, User as FirebaseUser, verifyBeforeUpdateEmail, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser, verifyBeforeUpdateEmail, sendPasswordResetEmail, EmailAuthProvider, reauthenticateWithCredential, sendEmailVerification } from 'firebase/auth';
 import { dbService } from '../services/db';
 import { serverTimestamp, Timestamp } from 'firebase/firestore';
 import { Booking, Car, User, CartItem } from '../types';
@@ -207,6 +207,16 @@ export default function Profile() {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!user) return;
+    try {
+      await sendEmailVerification(user);
+      toast.success('Verification email sent! Please check your inbox.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send verification email. Please try again later.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -217,6 +227,24 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-6 max-w-5xl mx-auto">
+      {!user?.emailVerified && (
+        <div className="mb-8 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-amber-500">
+            <AlertCircle size={24} />
+            <div>
+              <h4 className="font-bold">Verify your email address</h4>
+              <p className="text-sm text-amber-500/80">Please verify your email to unlock all features, including booking vehicles.</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleResendVerification}
+            className="px-4 py-2 bg-amber-500 text-charcoal font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-amber-400 transition-colors whitespace-nowrap"
+          >
+            Resend Email
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
         <div>
           <h2 className="text-4xl font-bold tracking-tighter mb-2 uppercase">MY ACCOUNT</h2>

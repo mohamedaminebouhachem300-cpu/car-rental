@@ -13,6 +13,7 @@ import Auth from './components/Auth';
 import Confirmation from './components/Confirmation';
 import Profile from './components/Profile';
 import Favorites from './components/Favorites';
+import AdminDashboard from './components/AdminDashboard';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -81,6 +82,7 @@ export default function App() {
           <Route path="/auth" element={user ? <Navigate to="/fleet" /> : <Auth />} />
           <Route path="/confirmation/:bookingId" element={<Confirmation />} />
           <Route path="/profile" element={user ? <Profile /> : <Navigate to="/auth" />} />
+          <Route path="/admin" element={user ? <AdminDashboard /> : <Navigate to="/auth" />} />
         </Routes>
         <Toaster position="top-center" theme="dark" richColors />
       </div>
